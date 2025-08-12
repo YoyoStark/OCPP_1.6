@@ -67,6 +67,7 @@
   unsigned long lastDebounceTime = 0;
   DynamicJsonDocument responsePayload(1024);
   int currentTransactionId = -1;
+  bool startTransaction = false;
 
 
   enum SensorReadState { READ_VOLTAGE_PREP, READ_VOLTAGE_COUNT, READ_CURRENT_PREP, READ_CURRENT_COUNT, READ_DONE };
@@ -266,7 +267,8 @@ void sendStartTransaction()
         sendBootNotification();
         break;
 
-      case WStype_TEXT: {
+      case WStype_TEXT: 
+      {
         Serial.printf("[WS] RX: %s\n", payload);
         DynamicJsonDocument doc(4096); // increase input buffer
         DeserializationError err = deserializeJson(doc, payload, length);
@@ -679,6 +681,12 @@ void loop()
   //readSensorValues();                     // in test cases replace it with updateDemoVariables();  // in real life use readSensorValues()
   updateDemoVariables();
   //updateSensorFSM();
+
+  if(bootAccepted & !startTransaction  )
+  {
+    sendStartTransaction();
+    startTransactionSent = true;
+  }
 
   static unsigned long lastStatus = 0, lastHeartbeat = 0, lastMeter = 0;
   unsigned long now = millis();
