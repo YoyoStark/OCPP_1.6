@@ -66,8 +66,9 @@
   volatile bool buttonPressed = false;
   unsigned long lastDebounceTime = 0;
   DynamicJsonDocument responsePayload(1024);
-  int currentTransactionId = -1;
+  int transactionId  = -1;
   bool startTransaction = false;
+  bool sessionActive = false;
 
 
   enum SensorReadState { READ_VOLTAGE_PREP, READ_VOLTAGE_COUNT, READ_CURRENT_PREP, READ_CURRENT_COUNT, READ_DONE };
@@ -236,6 +237,7 @@ void handleRemoteStartTransaction(String messageId, JsonObject payload)
 
 void sendStartTransaction() 
 {
+    startTransaction = true;
     DynamicJsonDocument doc(512);
     doc[0] = 2;
     doc[1] = "startTx_" + String(message_counter++);
@@ -243,7 +245,7 @@ void sendStartTransaction()
 
     JsonObject p = doc.createNestedObject(3);
     p["connectorId"] = 1;
-    p["idTag"] = "LOCAL";
+    p["idTag"] = "DA_SMARTPLUG_03";
     p["meterStart"] = (int)energy;  // Wh
     p["timestamp"] = getCurrentTimestamp();
 
@@ -316,9 +318,9 @@ void handleCallResult(const String& messageId, JsonVariant payload)
         {
             if (payload.containsKey("transactionId"))
             {
-                currentTransactionId = payload["transactionId"].as<int>();
+                transactionId = payload["transactionId"].as<int>();
                 Serial.print("Stored transactionId: ");
-                Serial.println(currentTransactionId);
+                Serial.println(transactionId);
             }
             else
             {
@@ -685,7 +687,7 @@ void loop()
   if(bootAccepted & !startTransaction  )
   {
     sendStartTransaction();
-    startTransactionSent = true;
+    transactionId = true;
   }
 
   static unsigned long lastStatus = 0, lastHeartbeat = 0, lastMeter = 0;
@@ -721,7 +723,7 @@ void updateDemoVariables()
 
   // Simulate changing sensor values
   current = (random(8, 11) / 10.0);  // 0.8 to 1.1 A
-  voltage = (random(2130, 2190) / 10.0); // 210.0V to 220.0V
+  voltage = (random(220, 230) / 10.0); // 21.0V to 22.0V
   power = voltage * current; // Watts
 
   // Calculate elapsed time in seconds
