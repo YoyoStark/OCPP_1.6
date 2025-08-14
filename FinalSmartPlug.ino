@@ -501,7 +501,15 @@ void sendMeterValues()
 
   JsonObject payload = doc.createNestedObject(3);
   payload["connectorId"] = 1;
-  // payload["transactionId"] = ... if you are inside a transaction
+
+  if (sessionActive && transactionId >= 0) 
+  {
+        payload["transactionId"] = transactionId;
+    } else 
+    {
+        // No active session — send as connector status reading
+        Serial.println("[METER] No active session — sending MeterValues without transactionId");
+    }
 
   JsonArray meterValue = payload.createNestedArray("meterValue");
   JsonObject entry = meterValue.createNestedObject();
