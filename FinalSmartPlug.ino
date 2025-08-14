@@ -321,6 +321,7 @@ void handleCallResult(const String& messageId, JsonVariant payload)
                 transactionId = payload["transactionId"].as<int>();
                 Serial.print("Stored transactionId: ");
                 Serial.println(transactionId);
+                sessionActive = true;
             }
             else
             {
@@ -684,10 +685,10 @@ void loop()
   updateDemoVariables();
   //updateSensorFSM();
 
-  if(bootAccepted & !startTransaction  )
+  if(bootAccepted && !startTransaction  )
   {
     sendStartTransaction();
-    transactionId = true;
+    startTransaction = true;
   }
 
   static unsigned long lastStatus = 0, lastHeartbeat = 0, lastMeter = 0;
